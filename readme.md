@@ -134,3 +134,47 @@ if any(username == b for b in blacklist):  # Better: use `in` for strings
 - `any([])` returns `False`, not `True`; empty = no truthy elements.
 - Short-circuits: once a truthy value is found, no further iteration.
 - Opposite of `all()`; `not all(x)` ≈ `any(not x for x in ...)`
+
+---
+
+## `ascii(obj)`
+
+**Signature:** `ascii(obj)`<br>
+**Returns:** string similar to `repr(obj)` but escapes non-ASCII characters with `\x`, `\u`, or `\U`.
+
+**Examples**
+
+```py
+# Unicode escape patterns
+ascii("café")          # -> "'caf\\xe9'"  (é → \xe9)
+ascii("hello world")   # -> "'hello world'"  (all ASCII → unchanged)
+ascii("你好")         # -> "'\\u4f60\\u597d'"  (Chinese chars)
+ascii("emoji 🎉")     # -> "'emoji \\U0001f389'"  (high Unicode)
+
+# With objects
+ascii([1, 2, "café"])  # -> "[1, 2, 'caf\\xe9']"
+
+# Practical pattern: safe logging for all character sets
+def safe_log(message):
+    return ascii(message)  # Safe for ASCII-only logs
+
+print(safe_log("User: José"))  # -> "'User: Jos\\xe9'"
+```
+
+**Detailed Explanation:**
+- Similar to `repr()` but **escapes all non-ASCII characters**.
+- ASCII printable characters (0x20–0x7E) remain unchanged.
+- Non-ASCII encoded as `\xhh` (8-bit), `\uhhhh` (16-bit), or `\Uhhhhhhhh` (32-bit).
+- Result is always a valid Python string literal (safe to print/log).
+
+**Use-cases:**
+- Logging systems that only support ASCII output
+- Debugging code with international text without corruption
+- Network protocols requiring ASCII-safe representations
+- Safe display of untrusted input
+
+**Tips & Pitfalls:**
+- Output is **safe for ASCII terminals/logs** but less human-readable.
+- `repr()` vs. `ascii()`: `repr()` keeps Unicode readable; `ascii()` escapes it.
+- Useful when you don't control the output encoding (old systems, telnet, etc.).
+- `ascii()` slower than `repr()` for ASCII-only strings (due to escape processing).
